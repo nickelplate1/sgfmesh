@@ -1,0 +1,36 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-logs:/mosquitto/log
+    networks:
+      - meshnet
+
+  meshview:
+    image: ghcr.io/pablorevilla-meshtastic/meshview:latest
+    container_name: meshview
+    restart: unless-stopped
+    ports:
+      - "${MESHVIEW_PORT:-8081}:8081"
+    volumes:
+      - ./meshview/config.ini:/etc/meshview/config.ini
+      - meshview-data:/var/lib/meshview
+    depends_on:
+      - mosquitto
+    networks:
+      - meshnet
+    
+volumes:
+  mosquitto-data:
+  mosquitto-logs:
+  meshview-data:
+
+networks:
+  meshnet:
+    driver: bridge
